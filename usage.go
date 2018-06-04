@@ -37,9 +37,9 @@ KEY	TYPE	DEFAULT	REQUIRED	DESCRIPTION
 )
 
 var (
-	decoderType         = reflect.TypeOf((*Decoder)(nil)).Elem()
-	setterType          = reflect.TypeOf((*Setter)(nil)).Elem()
-	textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+	decoderType           = reflect.TypeOf((*Decoder)(nil)).Elem()
+	setterType            = reflect.TypeOf((*Setter)(nil)).Elem()
+	textUnmarshalerType   = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 	binaryUnmarshalerType = reflect.TypeOf((*encoding.BinaryUnmarshaler)(nil)).Elem()
 )
 
@@ -150,9 +150,9 @@ func Usagef(prefix string, spec interface{}, out io.Writer, format string) error
 }
 
 // Usaget writes usage information to the specified io.Writer using the specified template
-func Usaget(prefix string, spec interface{}, out io.Writer, tmpl *template.Template) error {
+func Usaget(prefix string, spec interface{}, out io.Writer, tmpl *template.Template, opts ...ParseOption) error {
 	// gather first
-	infos, err := gatherInfo(prefix, spec)
+	infos, err := gatherInfo(prefix, spec, mustOption(opts...))
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,11 @@ var ErrInvalidSpecification = errors.New("specification must be a struct pointer
 
 var gatherRegexp = regexp.MustCompile("([^A-Z]+|[A-Z][^A-Z]+|[A-Z]+)")
 
+var defaultOpts = ParseOption{
+	KeyFormat: "%s_%s",
+	LookupEnv: lookupEnv,
+}
+
 // A ParseError occurs when an environment variable cannot be converted to
 // the type required by a struct field during assignment.
 type ParseError struct {
@@ -29,6 +34,13 @@ type ParseError struct {
 	TypeName  string
 	Value     string
 	Err       error
+}
+
+// ParseOption enables the user to configure how the environment variables are
+// read or generated from their environment.
+type ParseOption struct {
+	KeyFormat string
+	LookupEnv func(key string) (string, bool)
 }
 
 // Decoder has the same semantics as Setter, but takes higher precedence.
@@ -57,7 +69,7 @@ type varInfo struct {
 }
 
 // GatherInfo gathers information about the specified struct
-func gatherInfo(prefix string, spec interface{}) ([]varInfo, error) {
+func gatherInfo(prefix string, spec interface{}, option ParseOption) ([]varInfo, error) {
 	s := reflect.ValueOf(spec)
 
 	if s.Kind() != reflect.Ptr {
@@ -117,21 +129,21 @@ func gatherInfo(prefix string, spec interface{}) ([]varInfo, error) {
 			info.Key = info.Alt
 		}
 		if prefix != "" {
-			info.Key = fmt.Sprintf("%s_%s", prefix, info.Key)
+			info.Key = fmt.Sprintf(option.KeyFormat, prefix, info.Key)
 		}
 		info.Key = strings.ToUpper(info.Key)
 		infos = append(infos, info)
 
 		if f.Kind() == reflect.Struct {
 			// honor Decode if present
-			if decoderFrom(f) == nil && setterFrom(f) == nil && textUnmarshaler(f) == nil && binaryUnmarshaler(f) == nil  {
+			if decoderFrom(f) == nil && setterFrom(f) == nil && textUnmarshaler(f) == nil && binaryUnmarshaler(f) == nil {
 				innerPrefix := prefix
 				if !ftype.Anonymous {
 					innerPrefix = info.Key
 				}
 
 				embeddedPtr := f.Addr().Interface()
-				embeddedInfos, err := gatherInfo(innerPrefix, embeddedPtr)
+				embeddedInfos, err := gatherInfo(innerPrefix, embeddedPtr, option)
 				if err != nil {
 					return nil, err
 				}
@@ -147,8 +159,8 @@ func gatherInfo(prefix string, spec interface{}) ([]varInfo, error) {
 // CheckDisallowed checks that no environment variables with the prefix are set
 // that we don't know how or want to parse. This is likely only meaningful with
 // a non-empty prefix.
-func CheckDisallowed(prefix string, spec interface{}) error {
-	infos, err := gatherInfo(prefix, spec)
+func CheckDisallowed(prefix string, spec interface{}, opts ...ParseOption) error {
+	infos, err := gatherInfo(prefix, spec, mustOption(opts...))
 	if err != nil {
 		return err
 	}
@@ -176,8 +188,9 @@ func CheckDisallowed(prefix string, spec interface{}) error {
 }
 
 // Process populates the specified struct based on environment variables
-func Process(prefix string, spec interface{}) error {
-	infos, err := gatherInfo(prefix, spec)
+func Process(prefix string, spec interface{}, opts ...ParseOption) error {
+	parseOpts := mustOption(opts...)
+	infos, err := gatherInfo(prefix, spec, parseOpts)
 
 	for _, info := range infos {
 
@@ -185,9 +198,9 @@ func Process(prefix string, spec interface{}) error {
 		// and an unset value. `os.LookupEnv` is preferred to `syscall.Getenv`,
 		// but it is only available in go1.5 or newer. We're using Go build tags
 		// here to use os.LookupEnv for >=go1.5
-		value, ok := lookupEnv(info.Key)
+		value, ok := parseOpts.LookupEnv(info.Key)
 		if !ok && info.Alt != "" {
-			value, ok = lookupEnv(info.Alt)
+			value, ok = parseOpts.LookupEnv(info.Alt)
 		}
 
 		def := info.Tags.Get("default")
@@ -365,4 +378,18 @@ func binaryUnmarshaler(field reflect.Value) (b encoding.BinaryUnmarshaler) {
 func isTrue(s string) bool {
 	b, _ := strconv.ParseBool(s)
 	return b
+}
+
+func mustOption(opts ...ParseOption) ParseOption {
+	parseOpts := defaultOpts
+	if len(opts) > 0 {
+		parseOpts = opts[0]
+		if parseOpts.KeyFormat == "" {
+			panic("when passing parse options, format is required")
+		}
+		if parseOpts.LookupEnv == nil {
+			panic("when passing parse options, lookup env function is required")
+		}
+	}
+	return parseOpts
 }
