@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT License that can be found in
 // the LICENSE file.
 
-package envconfig
+package kvconfig
 
 import (
 	"bytes"
@@ -130,7 +130,7 @@ func TestUsageCustomFormat(t *testing.T) {
 
 func TestUsageUnknownKeyFormat(t *testing.T) {
 	var s Specification
-	unknownError := "template: envconfig:1:2: executing \"envconfig\" at <.UnknownKey>"
+	unknownError := "template: kvconfig:1:2: executing \"kvconfig\" at <.UnknownKey>"
 	os.Clearenv()
 	buf := new(bytes.Buffer)
 	err := Usagef("env_config", &s, buf, "{{.UnknownKey}}")

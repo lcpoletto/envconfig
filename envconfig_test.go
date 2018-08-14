@@ -1,8 +1,8 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
+// Copyright (c) 2018 Luis Carlos Poletto. All rights reserved.
 // Use of this source code is governed by the MIT License that can be found in
 // the LICENSE file.
 
-package envconfig
+package kvconfig
 
 import (
 	"flag"
@@ -48,20 +48,20 @@ type Specification struct {
 	MultiWordVarWithAutoSplit    uint32 `split_words:"true"`
 	SomePointer                  *string
 	SomePointerWithDefault       *string `default:"foo2baz" desc:"foorbar is the word"`
-	MultiWordVarWithAlt          string  `envconfig:"MULTI_WORD_VAR_WITH_ALT" desc:"what alt"`
-	MultiWordVarWithLowerCaseAlt string  `envconfig:"multi_word_var_with_lower_case_alt"`
-	NoPrefixWithAlt              string  `envconfig:"SERVICE_HOST"`
+	MultiWordVarWithAlt          string  `kvconfig:"MULTI_WORD_VAR_WITH_ALT" desc:"what alt"`
+	MultiWordVarWithLowerCaseAlt string  `kvconfig:"multi_word_var_with_lower_case_alt"`
+	NoPrefixWithAlt              string  `kvconfig:"SERVICE_HOST"`
 	DefaultVar                   string  `default:"foobar"`
 	RequiredVar                  string  `required:"True"`
-	NoPrefixDefault              string  `envconfig:"BROKER" default:"127.0.0.1"`
+	NoPrefixDefault              string  `kvconfig:"BROKER" default:"127.0.0.1"`
 	RequiredDefault              string  `required:"true" default:"foo2bar"`
 	Ignored                      string  `ignored:"true"`
 	NestedSpecification          struct {
-		Property            string `envconfig:"inner"`
+		Property            string `kvconfig:"inner"`
 		PropertyWithDefault string `default:"fuzzybydefault"`
-	} `envconfig:"outer"`
+	} `kvconfig:"outer"`
 	AfterNested  string
-	DecodeStruct HonorDecodeInStruct `envconfig:"honor"`
+	DecodeStruct HonorDecodeInStruct `kvconfig:"honor"`
 	Datetime     time.Time
 	MapField     map[string]string `default:"one:two,three:four"`
 	UrlValue     CustomURL
@@ -72,8 +72,8 @@ type Embedded struct {
 	Enabled             bool `desc:"some embedded value"`
 	EmbeddedPort        int
 	MultiWordVar        string
-	MultiWordVarWithAlt string `envconfig:"MULTI_WITH_DIFFERENT_ALT"`
-	EmbeddedAlt         string `envconfig:"EMBEDDED_WITH_ALT"`
+	MultiWordVarWithAlt string `kvconfig:"MULTI_WITH_DIFFERENT_ALT"`
+	EmbeddedAlt         string `kvconfig:"EMBEDDED_WITH_ALT"`
 	EmbeddedIgnored     string `ignored:"true"`
 }
 
@@ -102,8 +102,8 @@ func TestProcess(t *testing.T) {
 	os.Setenv("ENV_CONFIG_HONOR", "honor")
 	os.Setenv("ENV_CONFIG_DATETIME", "2016-08-16T18:57:05Z")
 	os.Setenv("ENV_CONFIG_MULTI_WORD_VAR_WITH_AUTO_SPLIT", "24")
-	os.Setenv("ENV_CONFIG_URLVALUE", "https://github.com/kelseyhightower/envconfig")
-	os.Setenv("ENV_CONFIG_URLPOINTER", "https://github.com/kelseyhightower/envconfig")
+	os.Setenv("ENV_CONFIG_URLVALUE", "https://github.com/lcpoletto/kvconfig")
+	os.Setenv("ENV_CONFIG_URLPOINTER", "https://github.com/lcpoletto/kvconfig")
 	err := Process("env_config", &s)
 	if err != nil {
 		t.Error(err.Error())
@@ -187,7 +187,7 @@ func TestProcess(t *testing.T) {
 		t.Errorf("expected %q, got %q", 24, s.MultiWordVarWithAutoSplit)
 	}
 
-	u, err := url.Parse("https://github.com/kelseyhightower/envconfig")
+	u, err := url.Parse("https://github.com/lcpoletto/kvconfig")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

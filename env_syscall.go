@@ -1,6 +1,6 @@
 // +build !appengine,!go1.5
 
-package envconfig
+package kvconfig
 
 import "syscall"
 

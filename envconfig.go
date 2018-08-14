@@ -1,8 +1,8 @@
-// Copyright (c) 2013 Kelsey Hightower. All rights reserved.
+// Copyright (c) 2018 Luis Carlos Poletto. All rights reserved.
 // Use of this source code is governed by the MIT License that can be found in
 // the LICENSE file.
 
-package envconfig
+package kvconfig
 
 import (
 	"encoding"
@@ -56,7 +56,7 @@ type Setter interface {
 }
 
 func (e *ParseError) Error() string {
-	return fmt.Sprintf("envconfig.Process: assigning %[1]s to %[2]s: converting '%[3]s' to type %[4]s. details: %[5]s", e.KeyName, e.FieldName, e.Value, e.TypeName, e.Err)
+	return fmt.Sprintf("kvconfig.Process: assigning %[1]s to %[2]s: converting '%[3]s' to type %[4]s. details: %[5]s", e.KeyName, e.FieldName, e.Value, e.TypeName, e.Err)
 }
 
 // varInfo maintains information about the configuration variable
@@ -107,7 +107,7 @@ func gatherInfo(prefix string, spec interface{}, option ParseOption) ([]varInfo,
 			Name:  ftype.Name,
 			Field: f,
 			Tags:  ftype.Tag,
-			Alt:   strings.ToUpper(ftype.Tag.Get("envconfig")),
+			Alt:   strings.ToUpper(ftype.Tag.Get("kvconfig")),
 		}
 
 		// Default to the field name as the env var name (will be upcased)

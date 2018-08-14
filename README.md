@@ -1,14 +1,14 @@
-# envconfig
+# kvconfig
 
-[![Build Status](https://travis-ci.org/kelseyhightower/envconfig.svg)](https://travis-ci.org/kelseyhightower/envconfig)
+[![Build Status](https://travis-ci.org/lcpoletto/kvconfig.svg)](https://travis-ci.org/lcpoletto/kvconfig)
 
 ```Go
-import "github.com/kelseyhightower/envconfig"
+import "github.com/lcpoletto/kvconfig"
 ```
 
 ## Documentation
 
-See [godoc](http://godoc.org/github.com/kelseyhightower/envconfig)
+See [godoc](http://godoc.org/github.com/lcpoletto/kvconfig)
 
 ## Usage
 
@@ -34,7 +34,7 @@ import (
     "log"
     "time"
 
-    "github.com/kelseyhightower/envconfig"
+    "github.com/lcpoletto/kvconfig"
 )
 
 type Specification struct {
@@ -49,7 +49,7 @@ type Specification struct {
 
 func main() {
     var s Specification
-    err := envconfig.Process("myapp", &s)
+    err := kvconfig.Process("myapp", &s)
     if err != nil {
         log.Fatal(err.Error())
     }
@@ -91,14 +91,14 @@ Color codes:
 
 ## Struct Tag Support
 
-Envconfig supports the use of struct tags to specify alternate, default, and required
+Kvconfig supports the use of struct tags to specify alternate, default, and required
 environment variables.
 
 For example, consider the following struct:
 
 ```Go
 type Specification struct {
-    ManualOverride1 string `envconfig:"manual_override_1"`
+    ManualOverride1 string `kvconfig:"manual_override_1"`
     DefaultVar      string `default:"foobar"`
     RequiredVar     string `required:"true"`
     IgnoredVar      string `ignored:"true"`
@@ -106,14 +106,14 @@ type Specification struct {
 }
 ```
 
-Envconfig has automatic support for CamelCased struct elements when the
+Kvconfig has automatic support for CamelCased struct elements when the
 `split_words:"true"` tag is supplied. Without this tag, `AutoSplitVar` above
 would look for an environment variable called `MYAPP_AUTOSPLITVAR`. With the
 setting applied it will look for `MYAPP_AUTO_SPLIT_VAR`. Note that numbers
 will get globbed into the previous word. If the setting does not do the
 right thing, you may use a manual override.
 
-Envconfig will process value for `ManualOverride1` by populating it with the
+Kvconfig will process value for `ManualOverride1` by populating it with the
 value for `MYAPP_MANUAL_OVERRIDE_1`. Without this struct tag, it would have
 instead looked up `MYAPP_MANUALOVERRIDE1`. With the `split_words:"true"` tag
 it would have looked up `MYAPP_MANUAL_OVERRIDE1`.
@@ -124,15 +124,15 @@ export MYAPP_MANUAL_OVERRIDE_1="this will be the value"
 # export MYAPP_MANUALOVERRIDE1="and this will not"
 ```
 
-If envconfig can't find an environment variable value for `MYAPP_DEFAULTVAR`,
+If kvconfig can't find an environment variable value for `MYAPP_DEFAULTVAR`,
 it will populate it with "foobar" as a default value.
 
-If envconfig can't find an environment variable value for `MYAPP_REQUIREDVAR`,
+If kvconfig can't find an environment variable value for `MYAPP_REQUIREDVAR`,
 it will return an error when asked to process the struct.
 
-If envconfig can't find an environment variable in the form `PREFIX_MYVAR`, and there
+If kvconfig can't find an environment variable in the form `PREFIX_MYVAR`, and there
 is a struct tag defined, it will try to populate your variable with an environment
-variable that directly matches the envconfig tag in your struct definition:
+variable that directly matches the kvconfig tag in your struct definition:
 
 ```shell
 export SERVICE_HOST=127.0.0.1
@@ -140,17 +140,17 @@ export MYAPP_DEBUG=true
 ```
 ```Go
 type Specification struct {
-    ServiceHost string `envconfig:"SERVICE_HOST"`
+    ServiceHost string `kvconfig:"SERVICE_HOST"`
     Debug       bool
 }
 ```
 
-Envconfig won't process a field with the "ignored" tag set to "true", even if a corresponding
+Kvconfig won't process a field with the "ignored" tag set to "true", even if a corresponding
 environment variable is set.
 
 ## Supported Struct Field Types
 
-envconfig supports these struct field types:
+kvconfig supports these struct field types:
 
   * string
   * int8, int16, int32, int64
@@ -165,7 +165,7 @@ Embedded structs using these fields are also supported.
 
 ## Custom Decoders
 
-Any field whose type (or pointer-to-type) implements `envconfig.Decoder` can
+Any field whose type (or pointer-to-type) implements `kvconfig.Decoder` can
 control its own deserialization:
 
 ```Bash
@@ -181,9 +181,9 @@ func (ipd *IPDecoder) Decode(value string) error {
 }
 
 type DNSConfig struct {
-    Address IPDecoder `envconfig:"DNS_SERVER"`
+    Address IPDecoder `kvconfig:"DNS_SERVER"`
 }
 ```
 
-Also, envconfig will use a `Set(string) error` method like from the
+Also, kvconfig will use a `Set(string) error` method like from the
 [flag.Value](https://godoc.org/flag#Value) interface if implemented.
