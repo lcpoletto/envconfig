@@ -19,12 +19,13 @@ import (
 // ErrInvalidSpecification indicates that a specification is of the wrong type.
 var ErrInvalidSpecification = errors.New("specification must be a struct pointer")
 
-var gatherRegexp = regexp.MustCompile("([^A-Z]+|[A-Z][^A-Z]+|[A-Z]+)")
-
-var defaultOpts = ParseOption{
-	KeyFormat: "%s_%s",
-	LookupEnv: lookupEnv,
-}
+var (
+	gatherRegexp = regexp.MustCompile("([^A-Z]+|[A-Z][^A-Z]+|[A-Z]+)")
+	defaultOpts  = ParseOption{
+		KeyFormat: "%s_%s",
+		LookupEnv: lookupEnv,
+	}
+)
 
 // A ParseError occurs when an environment variable cannot be converted to
 // the type required by a struct field during assignment.
